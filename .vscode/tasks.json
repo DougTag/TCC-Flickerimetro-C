@@ -7,13 +7,15 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
-                "${fileDirname}\\tdigest.c",
+                "-I${workspaceFolder}\\lib",
+                "${workspaceFolder}\\src\\TDigest.c",
+                "${workspaceFolder}\\src\\Filter.c",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "${file}"
             ],
             "options": {
-                "cwd": "C:\\msys64\\mingw64\\bin"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [
                 "$gcc"

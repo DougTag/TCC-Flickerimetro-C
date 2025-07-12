@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "tdigest.h"
+#include "Tdigest.h"
 #include <x86intrin.h>
 
 #define S 3.896784172398884e+04f

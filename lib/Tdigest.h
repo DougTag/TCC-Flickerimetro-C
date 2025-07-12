@@ -1,12 +1,15 @@
+#ifndef TDIGEST_HEADER_GUARD
+#define TDIGEST_HEADER_GUARD
 /*
     T-digest implementation by Douglas Sonntag Carvalho, 2025
+    Implemented for the Computer Engineering course's final thesis:
+        Designing of a flickermeter for rating flicker of artificial lighting systems
 
-    I used those first two references. [1] is way more understandable. Although
-    [2] is the original paper, it doesn't say much about the implementation. 
-    Still, it is more rigorous and gives the insights of the structure. This way,
+    I used those first two references. [1] is way more understandable. Although [2] is the original paper, it doesn't
+    say much about the implementation. Still, it is more rigorous and gives the insights of the structure. This way,
     I opted to use the nomenclature from [2].
 
-    Check [3] if you need another explanation, but I've not read it.
+    Check [3] if you need another explanation or another way of seeing this data structure, but I've not read it.
 
     [1] T-Digest in Python
         https://www.kuniga.me/blog/2021/11/29/t-digest.html
@@ -20,8 +23,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef TDIGEST_DELTA
-#define TDIGEST_DELTA 200
+#ifndef TDIGEST_DELTA // Increase up to ~200 for better precision at the expense of processing resources
+#define TDIGEST_DELTA 100   
+#define TDIGEST_COS_2PI_DELTA 0.99802672842827155897f // cos(2*pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
+#define TDIGEST_SIN_2PI_DELTA 0.06279051952931337388f // sin(2*pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
+#endif
+
+#ifndef TDIGEST_BUFFER_SIZE // The bigger, the better
+#define TDIGEST_BUFFER_SIZE 4096 
 #endif
 
 typedef struct Cluster {
@@ -29,32 +38,31 @@ typedef struct Cluster {
     unsigned count; // Num. of samples inside it
 } Cluster;
 
-typedef struct Tdigest {
-    Cluster C[2*TDIGEST_DELTA+1];     // Array of Clusters, or bins
-    unsigned C_sz;  // Number of clusters
-    unsigned count; // Number of data samples
-} Tdigest;
+typedef struct TDigest {
+    unsigned count; // Total number of data samples
+
+    Cluster clusters[2*TDIGEST_DELTA+1];    // Array of Clusters, or bins
+    unsigned clusters_size;
+
+    float buffer[TDIGEST_BUFFER_SIZE];
+    unsigned buffer_size
+} TDigest;
 
 
-Tdigest* tdigest_new();
+TDigest* TDigest_new();
 
+void TDigest_delete(TDigest *td);
 
-void tdigest_delete(Tdigest *td);
+void TDigest_clear(TDigest *td);
 
+int TDigest_empty(TDigest *td);
 
-void tdigest_clear(Tdigest *td);
+void TDigest_copy(TDigest* dst, TDigest* src);
 
+void TDigest_merge(TDigest *a, const TDigest *b);
 
-int tdigest_empty(Tdigest *td);
+void TDigest_insert(TDigest *td, const float point);
 
+float TDigest_query(TDigest *td, float q);
 
-void tdigest_copy(Tdigest* dst, Tdigest* src);
-
-
-void tdigest_merge(Tdigest *a, const Tdigest *b);
-
-
-void tdigest_insert(Tdigest *td, const float const sorted_data[], unsigned sorted_data_sz);
-
-
-float tdigest_query(Tdigest *td, float q);
+#endif // TDIGEST_HEADER_GUARD

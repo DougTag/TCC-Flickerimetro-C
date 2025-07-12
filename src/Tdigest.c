@@ -16,152 +16,170 @@
         https://www.gresearch.com/news/approximate-percentiles-with-t-digests/
 */
 
-#include "tdigest.h"
+#include "lib/TDigest.h"
 
-Tdigest* tdigest_new() {
-    Tdigest* td = (Tdigest*) malloc(sizeof(Tdigest));
+TDigest* TDigest_new() {
+    TDigest* td = (TDigest*) malloc(sizeof(TDigest));
     // After merging & before compressing, it'll use 
-    // 2*delta at max. Check tdigest_merge().
-    td->C_sz = td->count = 0;
+    // 2*delta at max. Check TDigest_merge().
+    td->clusters_size = td->buffer_size = td->count = 0;
     return td;
 }
 
 
-void tdigest_delete(Tdigest *td) {
+void TDigest_delete(TDigest *td) {
     free(td);
 }
 
 
-void tdigest_clear(Tdigest *td) {
-    td->C_sz = td->count = 0;
+void TDigest_clear(TDigest *td) {
+    td->clusters_size = td->buffer_size = td->count = 0;
 }
 
 
-int tdigest_empty(Tdigest *td) {
-    return td->C_sz >= 0;
+int TDigest_empty(TDigest *td) {
+    return td->clusters_size == 0 && td->buffer_size == 0;
 }
 
 
-void tdigest_copy(Tdigest* dst, Tdigest* src) {
-    memcpy(dst, src, sizeof(Tdigest));
+void TDigest_copy(TDigest* dst, TDigest* src) {
+    memcpy(dst, src, sizeof(TDigest));
 }
 
 // That's k1(q) from [2]
-float _tdigest_scale_function(float q) { 
-    return TDIGEST_DELTA / (2*M_PI) * asinf(2*q - 1);
+// Because of the optimizations of _TDigest_cluster_max_q_r, is not being used
+static float _TDigest_scale_function(float q) { 
+    return TDIGEST_DELTA / (2.f*M_PI) * asinf(2*q - 1);
 }
 
-// Inverse of k1(q)
-float _tdigest_inv_scale_function(float k) {
-    return (sinf(2*M_PI*k/TDIGEST_DELTA) + 1) / 2.;
+// Inverse of k1(q) from [2]
+// Because of the optimizations of _TDigest_cluster_max_q_r, is not being used
+static float _TDigest_inv_scale_function(float k) {
+    return (sinf(2*M_PI*k/TDIGEST_DELTA) + 1) / 2.f;
 }
 
 
-float _tdigest_cluster_max_q_r(float q_l) {
+static float _TDigest_cluster_max_q_r(float q_l) {
     // Since we need that k(q_r) - k(q_l) <= 1, then we need that,
     // at max, k(q_r) = k(q_l) + 1, thus
     // q_r_max = k^-1 (k(q_l) + 1)
-    return _tdigest_inv_scale_function(_tdigest_scale_function(q_l)+1);
+    // return _TDigest_inv_scale_function(_TDigest_scale_function(q_l)+1);
+    // I've expanded this function, and got this way faster equation:
+    return (q_l-0.5f)*TDIGEST_COS_2PI_DELTA + sqrtf(-q_l*q_l + q_l)*TDIGEST_SIN_2PI_DELTA + 0.5f;
+    // Less operations, and just one sqrt - it's faster than sin and cos.
 }
 
 
-void _tdigest_compress(Tdigest *td) {
+static void _TDigest_compress(TDigest *td) {
     float q_l = 0.0f, q_r;
-    float q_r_max = _tdigest_cluster_max_q_r(0.0f);
-    unsigned partial_count = td->C[0].count;
+    float q_r_max = _TDigest_cluster_max_q_r(0.0f);
+    unsigned partial_count = td->clusters[0].count;
     const unsigned total_count = td->count;
 
     int i = 0;
-    for (int j = 1; j<td->C_sz; ++j) {
-        partial_count += td->C[j].count;
+    for (int j = 1; j < td->clusters_size; ++j) {
+        partial_count += td->clusters[j].count;
         q_r = partial_count / (float) total_count;
 
         if (q_r <= q_r_max) { // Then merge
-            td->C[i].count += td->C[j].count;
-            td->C[i].mean += (td->C[j].mean - td->C[i].mean) * td->C[j].count / td->C[i].count;
+            td->clusters[i].count += td->clusters[j].count;
+            td->clusters[i].mean += (td->clusters[j].mean - td->clusters[i].mean) * td->clusters[j].count
+                                    / td->clusters[i].count;
         }
         else { // Otherwise go to the next cluster
             ++i;
-            td->C[i].mean = td->C[j].mean;
-            td->C[i].count = td->C[j].count;
-            q_l = (partial_count - td->C[j].count) / (float) total_count;
-            q_r_max = _tdigest_cluster_max_q_r(q_l);
+            td->clusters[i].mean = td->clusters[j].mean;
+            td->clusters[i].count = td->clusters[j].count;
+            q_l = (partial_count - td->clusters[j].count) / (float) total_count;
+            q_r_max = _TDigest_cluster_max_q_r(q_l);
         }
     }
 
-    td->C_sz = i;
+    td->clusters_size = i+1;
 }
 
 // Merges b into a. The same algorithm used for merging in Merge Sort.
-void tdigest_merge(Tdigest *a, const Tdigest *b) {
+void TDigest_merge(TDigest *a, const TDigest *b) {
     Cluster result[2*TDIGEST_DELTA+1];
 
     int i = 0, j = 0;
 
-    while (i < a->C_sz && j < b->C_sz) {
-        if (a->C[i].mean <= b->C[j].mean) {
-            result[i+j] = a->C[i];
+    while (i < a->clusters_size && j < b->clusters_size) {
+        if (a->clusters[i].mean <= b->clusters[j].mean) {
+            result[i+j] = a->clusters[i];
             ++i;
         }
         else {
-            result[i+j] = b->C[j];
+            result[i+j] = b->clusters[j];
             ++j;
         }
     }
 
-    for (; i < a->C_sz; ++i)
-        result[i+j] = a->C[i];
+    for (; i < a->clusters_size; ++i)
+        result[i+j] = a->clusters[i];
 
-    for (; j < b->C_sz; ++j)
-        result[i+j] = b->C[j];
+    for (; j < b->clusters_size; ++j)
+        result[i+j] = b->clusters[j];
 
-    memcpy(a->C, result, (i+j)*sizeof(Cluster));
-    a->C_sz += b->C_sz;
+    memcpy(a->clusters, result, (i+j)*sizeof(Cluster));
+    a->clusters_size += b->clusters_size;
     a->count += b->count;
 
-    _tdigest_compress(a);
+    _TDigest_compress(a);
 }
 
-// O(N)
-void tdigest_insert(Tdigest *td, const float const sorted_data[], unsigned sorted_data_sz) {
-    if (sorted_data_sz <= 0) return; 
+
+static int _TDigest_data_comp(const void *a_ptr, const void *b_ptr) {
+    const float a = *(const float*) a_ptr, b = *(const float*) b_ptr;
+    return (a>b) - (a<b);
+}
+// O(size(td)+size(buffer))
+// Conceived to have better constant than separating it between inserting into an ordered array and then compressing.
+// Each data point is considered to be a cluster.
+// Then, does the compressing logic while inserting!
+void _TDigest_merge_buffer(TDigest *td) {
+    if (td->buffer_size <= 0) return;
+
+    qsort((void*) td->buffer, td->buffer_size, sizeof(float), _TDigest_data_comp);
 
     Cluster result[TDIGEST_DELTA+1];
 
-    float q_l = 0.0f, q_r = 0.0f;
-    float q_r_max = _tdigest_cluster_max_q_r(0.0f);
-    const unsigned total_count = td->count + sorted_data_sz;
-    unsigned partial_count; 
+    unsigned r_count;
+    const unsigned total_count = td->count + td->buffer_size;
 
-    int i = 0, j = 0, k = 0;
+    int i = 0; // Index for the buffer (td->buffer)
+    int j = 0; // Index for the cluster array td->clusters
+    int k = 0; // Index for the result
 
-    if (td->C_sz <= 0 || sorted_data[0] < td->C[0].mean) {
-        result[0].mean = sorted_data[0];
+    if (td->clusters_size <= 0 || td->buffer[0] < td->clusters[0].mean) {
+        result[0].mean = td->buffer[0];
         result[0].count = 1;
-        partial_count = 1;
+        r_count = 1;
         ++i;
     }
     else {
-        result[0] = td->C[0];
-        partial_count = td->C[0].count;
+        result[0] = td->clusters[0];
+        r_count = td->clusters[0].count;
         ++j;
     }
 
-    while (i < sorted_data_sz || j < td->C_sz) {
+    float q_r = 0.0f;
+    float q_r_max = _TDigest_cluster_max_q_r(0.0f);
+    while (i < td->buffer_size || j < td->clusters_size) {
         Cluster cur_cluster;
-        if (i >= sorted_data_sz) {
-            cur_cluster = td->C[j++];
+        if (i >= td->buffer_size) {
+            cur_cluster = td->clusters[j++];
         }
-        else if (j >= td->C_sz || sorted_data[i] < td->C[j].mean) {
+        else if (j >= td->clusters_size || td->buffer[i] < td->clusters[j].mean) {
             cur_cluster.count = 1;
-            cur_cluster.mean = sorted_data[i++];
+            cur_cluster.mean = td->buffer[i++];
         }
         else {
-            cur_cluster = td->C[j++];
+            cur_cluster = td->clusters[j++];
         }
 
-        partial_count += cur_cluster.count;
-        q_r = (float) partial_count / total_count;
+        r_count += cur_cluster.count;
+        q_r = (float) r_count / total_count;
 
         if (q_r < q_r_max) {
             result[k].count += cur_cluster.count;
@@ -170,31 +188,45 @@ void tdigest_insert(Tdigest *td, const float const sorted_data[], unsigned sorte
         else {
             ++k;
             result[k] = cur_cluster;
-            q_l = (float) (partial_count - cur_cluster.count) / total_count;
-            q_r_max = _tdigest_cluster_max_q_r(q_l);
+            const float q_l = (float) (r_count - cur_cluster.count) / total_count;
+            q_r_max = _TDigest_cluster_max_q_r(q_l);
         }
     }
 
     td->count = total_count;
-    td->C_sz = k+1;
-    memcpy(td->C, result, (td->C_sz)*sizeof(Cluster));
+    td->clusters_size = k+1;
+    td->buffer_size = 0;
+    memcpy(td->clusters, result, (td->clusters_size)*sizeof(Cluster));
 }
 
 
-float tdigest_query(Tdigest *td, float q) {
+void TDigest_insert(TDigest *td, const float point) {
+    td->buffer[td->buffer_size++] = point;
+
+    if(td->buffer_size < TDIGEST_BUFFER_SIZE) 
+        return;
+    else
+        _TDigest_merge_buffer(td);
+}
+
+
+float TDigest_query(TDigest *td, float q) {
     // See [1] for explanation. Nomenclature used (x, w and q) came from [2], p. 13-14.
     // I didn't do the little optimizations for clusters with 1 sample, or for the last
     // and first bins, proposed in [2] p. 14
+    if (td->buffer_size > 0) _TDigest_merge_buffer(td);
+
     const unsigned total_count = td->count;
-    const float quantile_count = q * td->count;
-    float partial_count = td->C[0].count / 2.f; // It may contain whole or half a sample (i.e. 12 or 12.5), so I used float
+    const float quantile_count = q * total_count;
+    float partial_count = td->clusters[0].count / 2.f;  // It may contain whole or half a sample (i.e. 12 or 12.5), so
+                                                        // I used float
 
-    if (quantile_count < partial_count) // If it fell on the first samples
-        return td->C[0].mean;
+    if (quantile_count < partial_count) // If it fell on the left of the first cluster (the smallest samples)
+        return td->clusters[0].mean;
 
-    for (int i = 1; i < td->C_sz; ++i) {
-        const float x0 = td->C[i-1].mean,  x1 = td->C[i].mean;
-        const unsigned w0 = td->C[i-1].count, w1 = td->C[i].count;
+    for (int i = 1; i < td->clusters_size; ++i) { // If it fell in the middle of two consecutive clusters
+        const float x0 = td->clusters[i-1].mean,  x1 = td->clusters[i].mean;
+        const unsigned w0 = td->clusters[i-1].count, w1 = td->clusters[i].count;
         const float interval_count = (w0 + w1)/2.0f;
 
         if (partial_count + interval_count > quantile_count) {
@@ -205,5 +237,5 @@ float tdigest_query(Tdigest *td, float q) {
         partial_count += interval_count;
     }
 
-    return td->C[td->C_sz-1].mean; // Fell on the last samples
+    return td->clusters[td->clusters_size-1].mean; // Fell on the right of the last cluster (the biggest samples)
 }
