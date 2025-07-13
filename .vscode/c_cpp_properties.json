@@ -1,0 +1,43 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "D:/Computacao/TCC/TCC-Flickerimetro-C/include",
+                "D:/Computacao/TCC/TCC-Flickerimetro-C/src",
+                "C:/Users/dougl/.platformio/packages/framework-cmsis/CMSIS/Include",
+                "C:/Users/dougl/.platformio/packages/framework-cmsis-stm32g4/Include",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "D:/Computacao/TCC/TCC-Flickerimetro-C/include",
+                    "D:/Computacao/TCC/TCC-Flickerimetro-C/src",
+                    "C:/Users/dougl/.platformio/packages/framework-cmsis/CMSIS/Include",
+                    "C:/Users/dougl/.platformio/packages/framework-cmsis-stm32g4/Include",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=60118",
+                "STM32G4xx",
+                "STM32G431xx",
+                "F_CPU=170000000L",
+                ""
+            ],
+            "compilerPath": "C:/Users/dougl/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
+            "compilerArgs": [
+                "-mthumb",
+                "-mcpu=cortex-m4",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}

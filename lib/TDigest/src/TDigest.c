@@ -16,7 +16,7 @@
         https://www.gresearch.com/news/approximate-percentiles-with-t-digests/
 */
 
-#include "lib/TDigest.h"
+#include "TDigest.h"
 
 TDigest* TDigest_new() {
     TDigest* td = (TDigest*) malloc(sizeof(TDigest));

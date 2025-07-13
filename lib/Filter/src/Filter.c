@@ -1,4 +1,4 @@
-#include "../lib/Filter.h"
+#include "Filter.h"
 
 Filter* Filter_new(const float num[], const float den[], const float x0[], const float y0[], 
                    const unsigned num_x_sz, const unsigned den_y_sz) 
