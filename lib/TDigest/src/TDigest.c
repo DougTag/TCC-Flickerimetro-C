@@ -49,13 +49,22 @@ void TDigest_copy(TDigest* dst, TDigest* src) {
 // That's k1(q) from [2]
 // Because of the optimizations of _TDigest_cluster_max_q_r, is not being used
 static float _TDigest_scale_function(float q) { 
-    return TDIGEST_DELTA / (2.f*M_PI) * asinf(2*q - 1);
+    // k0(q)
+    //return TDIGEST_DELTA/2.f * q;
+    // k1(q)
+    q = fminf(q, TDIGEST_COS2_PI_DELTA);
+    return TDIGEST_DELTA / (2.f*M_PI) * asinf(2.f*q - 1.f);
+    // k2(q)
 }
 
 // Inverse of k1(q) from [2]
 // Because of the optimizations of _TDigest_cluster_max_q_r, is not being used
 static float _TDigest_inv_scale_function(float k) {
-    return (sinf(2*M_PI*k/TDIGEST_DELTA) + 1) / 2.f;
+    // k0^-1(q)
+    //return 2.f/TDIGEST_DELTA * k;
+    // k1^-1(q)
+    return (sinf(2.f*M_PI*k/TDIGEST_DELTA) + 1.f) / 2.f; 
+    // k2^-1(q)
 }
 
 
@@ -63,16 +72,18 @@ static float _TDigest_cluster_max_q_r(float q_l) {
     // Since we need that k(q_r) - k(q_l) <= 1, then we need that,
     // at max, k(q_r) = k(q_l) + 1, thus
     // q_r_max = k^-1 (k(q_l) + 1)
-    // return _TDigest_inv_scale_function(_TDigest_scale_function(q_l)+1);
+    //return _TDigest_inv_scale_function(_TDigest_scale_function(q_l)+1.f);
     // I've expanded this function, and got this way faster equation:
+    q_l = fminf(q_l, TDIGEST_COS2_PI_DELTA);
     return (q_l-0.5f)*TDIGEST_COS_2PI_DELTA + sqrtf(-q_l*q_l + q_l)*TDIGEST_SIN_2PI_DELTA + 0.5f;
     // Less operations, and just one sqrt - it's faster than sin and cos.
 }
 
 
+
 static void _TDigest_compress(TDigest *td) {
-    float q_l = 0.0f, q_r;
-    float q_r_max = _TDigest_cluster_max_q_r(0.0f);
+    float q_l = 0.0, q_r;
+    float q_r_max = _TDigest_cluster_max_q_r(0.0);
     unsigned partial_count = td->clusters[0].count;
     const unsigned total_count = td->count;
 
@@ -100,7 +111,7 @@ static void _TDigest_compress(TDigest *td) {
 
 // Merges b into a. The same algorithm used for merging in Merge Sort.
 void TDigest_merge(TDigest *a, const TDigest *b) {
-    Cluster result[2*TDIGEST_DELTA+1];
+    Cluster result[TDIGEST_DELTA+1];
 
     int i = 0, j = 0;
 
@@ -163,8 +174,8 @@ void _TDigest_merge_buffer(TDigest *td) {
         ++j;
     }
 
-    float q_r = 0.0f;
-    float q_r_max = _TDigest_cluster_max_q_r(0.0f);
+    float q_r = 0.0;
+    float q_r_max = _TDigest_cluster_max_q_r(0.0);
     while (i < td->buffer_size || j < td->clusters_size) {
         Cluster cur_cluster;
         if (i >= td->buffer_size) {
@@ -179,16 +190,16 @@ void _TDigest_merge_buffer(TDigest *td) {
         }
 
         r_count += cur_cluster.count;
-        q_r = (float) r_count / total_count;
+        q_r = r_count / (float) total_count;
 
-        if (q_r < q_r_max) {
+        if (q_r <= q_r_max) {
             result[k].count += cur_cluster.count;
             result[k].mean += (cur_cluster.mean - result[k].mean) * cur_cluster.count / result[k].count;
         }
         else {
             ++k;
             result[k] = cur_cluster;
-            const float q_l = (float) (r_count - cur_cluster.count) / total_count;
+            const float q_l = (r_count - cur_cluster.count) / (float) total_count;
             q_r_max = _TDigest_cluster_max_q_r(q_l);
         }
     }
@@ -227,7 +238,7 @@ float TDigest_query(TDigest *td, float q) {
     for (int i = 1; i < td->clusters_size; ++i) { // If it fell in the middle of two consecutive clusters
         const float x0 = td->clusters[i-1].mean,  x1 = td->clusters[i].mean;
         const unsigned w0 = td->clusters[i-1].count, w1 = td->clusters[i].count;
-        const float interval_count = (w0 + w1)/2.0f;
+        const float interval_count = (w0 + w1)/2.0;
 
         if (partial_count + interval_count > quantile_count) {
             const float slope = (quantile_count - partial_count) / interval_count;

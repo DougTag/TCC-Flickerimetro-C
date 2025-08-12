@@ -4,25 +4,30 @@
 
 #define _USE_MATH_DEFINES
 
-#define S 3.896784172398884e+04f
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "IEC_61547_1.h"
-#include <x86intrin.h>
+#include "src/TDigest.h"
+#include "src/Filter.h"
 
+#define S 3.896784172398884e+04f
 
 int sgn(float x) {
     return x<0 ? -1 : x>0;
+}
+
+void swap(float* a, float *b) {
+    float c = *a;
+    *a = *b;
+    *b = c;
 }
 
 int main() {
     const unsigned fs = 10000; // Não mude, se não será preciso recalcular os coeficientes dos filtros.
     const float Ts = 1.0l/fs;
 
-    /*** Declaração dos filtros, determinados pelo código IEC_61547_1.m ***/
+    /*** Declaração dos filtros, determinados pelo código IEC_63547_1.m ***/
 
     float F_Ad_num[] = {4.9999750001250003943555934304843e-6, 4.9999750001250003943555934304843e-6};
     float F_Ad_den[] = {1.0, -0.99999000004999993862497831287328};
@@ -86,7 +91,7 @@ int main() {
     unsigned T_short = 10; // 10 minutos. A norma diz que pode ser de 1 a 15 min.
     float f_m = 0.9167, d_E = 0.020473;
     double P_inst_mean = 0;
-    TDigest *td = tdigest_new();
+    TDigest *td = TDigest_new();
 
     long long totalClocks = 0;
     unsigned bufferSize = 0, bufferMaxSize = 1000;
@@ -128,7 +133,7 @@ int main() {
         ++bufferSize;
 
         if (bufferSize == bufferMaxSize) {
-            tdigest_insert(td, buffer, bufferSize);
+            TDigest_insert(td, buffer, bufferSize);
             bufferSize = 0;
         }
         unsigned long long clk2 = __rdtsc();
@@ -172,64 +177,3 @@ int main() {
 
     return 0;
 }
-
-/*
-#include "tdigest.h"
-#include <stdio.h>
-
-int comp(const void* a, const void* b) {
-    float aa = *(const float*) a;
-    float bb = *(const float*) b;
-    return (aa > bb) - (aa < bb);
-}
-
-int main() {
-    Tdigest* td1 = tdigest_new();
-    Tdigest* td2 = tdigest_new();
-
-    FILE* file = fopen("sinal.txt", "r");
-
-    float aux[10000];
-    unsigned counter = 0;
-    while (fscanf(file, " %f", &aux[counter]) == 1) {
-        counter++;
-        if (counter == 10000) {
-            qsort(aux, counter, sizeof(float), comp);
-            tdigest_insert(td1, aux, counter);
-            counter = 0;
-        }
-    }
-    qsort(aux, counter, sizeof(float), comp);
-    tdigest_insert(td1, aux, counter);
-    fclose(file);
-
-    printf(" -- Termino insercao\n");
-
-    //tdigest_copy(td2, td1);
-
-    printf(" -- Termino copia\n");
-
-    //tdigest_merge(td1, td2);
-
-    printf(" -- Termino merge\n");
-
-    printf("Count: %d\n", td1->count);
-    printf("Cluster count: %d\n", td1->C_sz);
-    int p_count = 0;
-    for (int i = 0; i<td1->C_sz; ++i) {
-        p_count += td1->C[i].count;
-        printf(" %f: %7d (%d)\n", td1->C[i].mean, td1->C[i].count, p_count);
-    }
-
-    float P[] = {0.1, 0.7, 1, 1.5, 2.2, 3, 4, 6, 8, 10, 13, 17, 30, 50, 80};
-    
-    for (int i = 0; i<sizeof(P)/sizeof(float); ++i) {
-        printf("%f\n", tdigest_query(td1, (100-P[i])/100.));
-    }
-
-    tdigest_clear(td1);
-
-    tdigest_delete(td1);
-    tdigest_delete(td2);
-}
-*/

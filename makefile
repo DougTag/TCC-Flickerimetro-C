@@ -1,78 +1,71 @@
-# Makefile Otimizado para Windows
-
-# --- 1. CONFIGURAÇÕES E VARIÁVEIS ---
-# Compilador a ser usado
+# 1. CONFIGURAÇÕES E VARIÁVEIS
 CC = gcc
 
-# Diretórios (usando barras normais, que o make e o gcc entendem)
+# Diretórios
 SRC_DIR = src
 BUILD_DIR = build
 BIN_DIR = bin
-TEST_DIR = tests
-LIB_DIR = lib	# Não sendo usado no momento
+TEST_DIR = test
+LIB_DIR = lib
 
-# Flags do compilador
-CFLAGS = -Wall -g -I.
+# 2. ARQUIVOS
 
-# Flags do linker
-LDFLAGS =
-
-
-# --- 2. ARQUIVOS E ALVOS ---
-
-# Nome do executável principal
-TARGET_EXEC = meu_programa
-
-# Arquivos fonte e objeto do programa principal
 SRCS = $(wildcard $(SRC_DIR)/*.c)
-OBJS = $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+LIB_SRCS = $(wildcard $(LIB_DIR)/*/src/*.c)
+ALL_SRCS = $(SRCS) $(LIB_SRCS)
 
-# Arquivos fonte e executáveis de teste
+OBJS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(notdir $(ALL_SRCS)))
+
+LIB_DIRS = $(wildcard $(LIB_DIR)/*/)
+
+## Arquivos de teste
 TEST_SRCS = $(wildcard $(TEST_DIR)/test_*.c)
 TEST_EXECS = $(TEST_SRCS:$(TEST_DIR)/%.c=$(BIN_DIR)/%)
 
-# --- 3. REGRAS DE COMPILAÇÃO PRINCIPAL ---
+VPATH = $(SRC_DIR) $(patsubst %/,%,$(wildcard $(LIB_DIR)/*/src/))
 
-# Alvo padrão: compila o programa principal
+TARGET_EXEC = main.exe
+
+# 3. FLAGS
+
+CFLAGS = -Wall -g -I$(SRC_DIR) $(foreach dir,$(LIB_DIRS),-I$(dir))
+
+LDFLAGS = -lm
+
+# 4. TARGETS
+
 all: $(BIN_DIR)/$(TARGET_EXEC)
 
-# Regra para criar o executável principal
 $(BIN_DIR)/$(TARGET_EXEC): $(OBJS)
-	@if not exist $(subst /,,\,$(BIN_DIR)) mkdir $(subst /,,\,$(BIN_DIR))
+	if not exist $(subst /,\,$(BIN_DIR)) mkdir $(subst /,\,$(BIN_DIR))
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 	@echo Executavel '$(TARGET_EXEC)' criado em '$(BIN_DIR)/'.
 
-# Regra genérica para criar arquivos .o
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	@if not exist $(subst /,,\,$(BUILD_DIR)) mkdir $(subst /,,\,$(BUILD_DIR))
+$(BUILD_DIR)/%.o: %.c
+	if not exist $(subst /,\,$(BUILD_DIR)) mkdir $(subst /,\,$(BUILD_DIR))
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# --- 4. REGRAS DE TESTES ---
 
-# Alvo para APENAS COMPILAR os testes.
+## Para os testes
 build-tests: $(TEST_EXECS)
 	@echo Todos os testes foram compilados com sucesso em '$(BIN_DIR)/'.
 
-# Alvo para APENAS EXECUTAR os testes.
 run-tests: build-tests
 	@echo --- Executando Testes ---
-	@for %f in ($(subst /,,\,$(TEST_EXECS))) do @%f
+	for %f in ($(subst /,,\,$(TEST_EXECS))) do @%f
 	@echo --- Testes Concluidos ---
 
-# Atalho para compilar e executar os testes
 test: run-tests
 
-# Regra genérica para criar um executável de teste.
 $(BIN_DIR)/%: $(TEST_DIR)/%.c $(OBJS)
-	@if not exist $(subst /,,\,$(BIN_DIR)) mkdir $(subst /,,\,$(BIN_DIR))
+	if not exist $(subst /,\,$(BIN_DIR)) mkdir $(subst /,\,$(BIN_DIR))
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-
-# --- 5. ALVOS "PHONY" (AÇÕES) ---
-
 clean:
-	@if exist $(subst /,,\,$(BUILD_DIR)) rd /s /q $(subst /,,\,$(BUILD_DIR))
-	@if exist $(subst /,,\,$(BIN_DIR)) rd /s /q $(subst /,,\,$(BIN_DIR))
+	if exist $(subst /,\,$(BUILD_DIR)) rd /s /q $(subst /,\,$(BUILD_DIR))
+	if exist $(subst /,\,$(BIN_DIR)) rd /s /q $(subst /,\,$(BIN_DIR))
 	@echo Arquivos gerados foram limpos.
+#	rm -r $(BIN_DIR)
+#	rm -r $(BUILD_DIR)
 
 .PHONY: all clean test build-tests run-tests

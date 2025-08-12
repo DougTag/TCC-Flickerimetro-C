@@ -1,4 +1,4 @@
-#include "lib/TDigest.h"
+#include "src/TDigest.h"
 #include <stdlib.h>
 #include <stdio.h>
 

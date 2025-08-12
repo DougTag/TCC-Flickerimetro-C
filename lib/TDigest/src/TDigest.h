@@ -24,13 +24,14 @@
 #include <string.h>
 
 #ifndef TDIGEST_DELTA // Increase up to ~200 for better precision at the expense of processing resources
-#define TDIGEST_DELTA 100   
-#define TDIGEST_COS_2PI_DELTA 0.99802672842827155897f // cos(2*pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
-#define TDIGEST_SIN_2PI_DELTA 0.06279051952931337388f // sin(2*pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
+#define TDIGEST_DELTA 100  
+#define TDIGEST_COS_2PI_DELTA 0.99802672842827156195 // cos(2*pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
+#define TDIGEST_SIN_2PI_DELTA 0.06279051952931337607 // sin(2*pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
+#define TDIGEST_COS2_PI_DELTA 0.99901336421413578097 // cos^2(pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
 #endif
 
 #ifndef TDIGEST_BUFFER_SIZE // The bigger, the better
-#define TDIGEST_BUFFER_SIZE 4096 
+#define TDIGEST_BUFFER_SIZE 2048 
 #endif
 
 typedef struct Cluster {
@@ -45,7 +46,7 @@ typedef struct TDigest {
     unsigned clusters_size;
 
     float buffer[TDIGEST_BUFFER_SIZE];
-    unsigned buffer_size
+    unsigned buffer_size;
 } TDigest;
 
 
