@@ -6,37 +6,13 @@
 // Configuration: https://docs.platformio.org/en/latest/projectconf/sections/env/options/debug/index.html
 
 {
+    "version": "0.2.0",
     "configurations": [
-        {
-            "name": "(gdb) Launch",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}\\bin\\${fileBasenameNoExtension}.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "miDebuggerPath": "C:\\msys64\\mingw64\\bin\\gdb.exe",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set Disassembly Flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
-                    "ignoreFailures": true
-                }
-            ]
-        },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "D:/Computacao/TCC/TCC-Flickerimetro-C/.pio/build/genericSTM32G431CB/firmware.elf",
+            "executable": "d:/Computacao/TCC/TCC-Flickerimetro-C/.pio/build/genericSTM32G431CB/firmware.elf",
             "projectEnvName": "genericSTM32G431CB",
             "toolchainBinDir": "C:/Users/dougl/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "internalConsoleOptions": "openOnSessionStart",
@@ -50,7 +26,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "D:/Computacao/TCC/TCC-Flickerimetro-C/.pio/build/genericSTM32G431CB/firmware.elf",
+            "executable": "d:/Computacao/TCC/TCC-Flickerimetro-C/.pio/build/genericSTM32G431CB/firmware.elf",
             "projectEnvName": "genericSTM32G431CB",
             "toolchainBinDir": "C:/Users/dougl/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "internalConsoleOptions": "openOnSessionStart",
@@ -60,7 +36,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "D:/Computacao/TCC/TCC-Flickerimetro-C/.pio/build/genericSTM32G431CB/firmware.elf",
+            "executable": "d:/Computacao/TCC/TCC-Flickerimetro-C/.pio/build/genericSTM32G431CB/firmware.elf",
             "projectEnvName": "genericSTM32G431CB",
             "toolchainBinDir": "C:/Users/dougl/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "internalConsoleOptions": "openOnSessionStart",

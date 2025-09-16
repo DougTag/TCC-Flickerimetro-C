@@ -18,16 +18,12 @@
     [3] Approximate percentiles with t-digests
         https://www.gresearch.com/news/approximate-percentiles-with-t-digests/
 */
-#define _USE_MATH_DEFINES
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-
 #ifndef TDIGEST_DELTA // Increase up to ~200 for better precision at the expense of processing resources
 #define TDIGEST_DELTA 100  
 #define TDIGEST_COS_2PI_DELTA 0.99802672842827156195 // cos(2*pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
 #define TDIGEST_SIN_2PI_DELTA 0.06279051952931337607 // sin(2*pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
 #define TDIGEST_COS2_PI_DELTA 0.99901336421413578097 // cos^2(pi/TDIGEST_DELTA). Recalc it if TDIGEST_DELTA changes!
+
 #endif
 
 #ifndef TDIGEST_BUFFER_SIZE // The bigger, the better

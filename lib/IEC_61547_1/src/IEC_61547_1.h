@@ -1,9 +1,8 @@
 #ifndef IEC_61547_1_HEADER_GUARD
 #define IEC_61547_1_HEADER_GUARD
 
-#include <stdlib.h>
-#include "src/Filter.h"
-#include "src/TDigest.h"
+#include "Filter.h"
+#include "TDigest.h"
 
 #define NETWORK_230V_50HZ
 

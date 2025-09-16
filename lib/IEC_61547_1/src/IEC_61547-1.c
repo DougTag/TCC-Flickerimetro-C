@@ -1,5 +1,8 @@
 #include "IEC_61547_1.h"
 
+#include <stdlib.h>
+#include <math.h>
+
 static const float F_Ad_num[] = {4.99997500012500039436e-06, 4.99997500012500039436e-06};
 static const float F_Ad_den[] = {1.00000000000000000000e+00, -9.99990000049999938625e-01};
 static const float F_B_PAd_num[] = {9.99984292283468301221e-01, -9.99984292283468301221e-01};

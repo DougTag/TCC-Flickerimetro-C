@@ -18,6 +18,11 @@
 
 #include "TDigest.h"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+
 TDigest* TDigest_new() {
     TDigest* td = (TDigest*) malloc(sizeof(TDigest));
     // After merging & before compressing, it'll use 

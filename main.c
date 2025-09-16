@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "src/TDigest.h"
-#include "src/Filter.h"
+#include "TDigest.h"
+#include "Filter.h"
+#include "USART.h"
+#include <stm32g4xx.h>
 
 #define S 3.896784172398884e+04f
 
