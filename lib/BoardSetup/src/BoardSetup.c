@@ -2,7 +2,8 @@
 #include <stm32g431xx.h>
 
 void _BoardSetup_CoreClock();
-void _BoardSetup_GPIOC6();
+void _BoardSetup_GPIOC();
+void _BoardSetup_GPIOA();
 
 void BoardSetup_Init() {
     _BoardSetup_CoreClock();
@@ -47,6 +48,8 @@ void _BoardSetup_GPIOC() {
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOCEN; // Enables AHB2 bus clock to GPIOC
     GPIOC->MODER &= ~GPIO_MODER_MODE6_1; // Configures PC6 as output. Its other configurations (speed, pull-up or down,
                                          // .etc) are the reset values.
+    GPIOC->MODER &= ~GPIO_MODER_MODE10_1;
+    GPIOC->MODER &= ~GPIO_MODER_MODE11_1;
 }
 void _BoardSetup_GPIOA() {
     // --- ANALOG INPUTS FOR ADC1 --- //

@@ -2,7 +2,7 @@
 #define ADC_HEADER_GUARD
 #include <inttypes.h>
 
-#define ADC1_QUEUE_MAX_SIZE 10
+#define ADC1_QUEUE_MAX_SIZE 2048
 
 extern volatile uint32_t ADC1_queue[ADC1_QUEUE_MAX_SIZE];
 extern volatile uint32_t ADC1_queue_sz;

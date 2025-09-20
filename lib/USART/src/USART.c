@@ -19,13 +19,13 @@ void USART1_Init() {
     USART1->CR1 |= USART_CR1_UE; // Habilita USART1 
 }
 
-void USART1_sendByte(char data)  {
+void USART1_SendByte(char data)  {
     while (!(USART1->ISR & USART_ISR_TXE)); // Aguarda buffer de Tx estar vazio
     USART1->TDR = data;
 }
 
-void USART1_sendStr(char *data)  {
+void USART1_SendStr(char *data)  {
     for(int i = 0; data[i]; ++i) {
-       USART1_sendByte(data[i]);
+       USART1_SendByte(data[i]);
     }
 }

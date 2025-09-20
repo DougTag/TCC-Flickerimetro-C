@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "Utils.h"
+#include <math.h>
 
 volatile uint32_t ADC1_queue[ADC1_QUEUE_MAX_SIZE];
 volatile uint32_t ADC1_queue_sz = 0;
@@ -67,8 +68,8 @@ void ADC1_2_IRQHandler() {
         ADC1_queue[ADC1_queue_sz] = ADC1->DR;
         ++ADC1_queue_sz;
         if (ADC1_queue_sz > sizeof(ADC1_queue)/sizeof(uint32_t)) { // Se o buffer estourar...
-            //exit(-1);
-            --ADC1_queue_sz;
+            GPIOC->ODR ^= GPIO_ODR_OD6; // toogle PC6
+            exit(-1);
         }
     }
 }

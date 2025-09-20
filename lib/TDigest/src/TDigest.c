@@ -23,17 +23,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-TDigest* TDigest_new() {
-    TDigest* td = (TDigest*) malloc(sizeof(TDigest));
+void TDigest_init(TDigest *td) {
     // After merging & before compressing, it'll use 
     // 2*delta at max. Check TDigest_merge().
     td->clusters_size = td->buffer_size = td->count = 0;
-    return td;
-}
-
-
-void TDigest_delete(TDigest *td) {
-    free(td);
 }
 
 
@@ -58,7 +51,7 @@ static float _TDigest_scale_function(float q) {
     //return TDIGEST_DELTA/2.f * q;
     // k1(q)
     q = fminf(q, TDIGEST_COS2_PI_DELTA);
-    return TDIGEST_DELTA / (2.f*M_PI) * asinf(2.f*q - 1.f);
+    return TDIGEST_DELTA / (2.f*M_PI) * asin(2.f*q - 1.f);
     // k2(q)
 }
 
@@ -68,7 +61,7 @@ static float _TDigest_inv_scale_function(float k) {
     // k0^-1(q)
     //return 2.f/TDIGEST_DELTA * k;
     // k1^-1(q)
-    return (sinf(2.f*M_PI*k/TDIGEST_DELTA) + 1.f) / 2.f; 
+    return (sin(2.f*M_PI*k/TDIGEST_DELTA) + 1.f) / 2.f; 
     // k2^-1(q)
 }
 

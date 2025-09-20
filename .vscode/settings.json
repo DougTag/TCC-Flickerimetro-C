@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "timebase.h": "c"
+        "timebase.h": "c",
+        "iec_61547_1.h": "c"
     }
 }

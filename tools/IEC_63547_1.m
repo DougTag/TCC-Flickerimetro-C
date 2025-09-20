@@ -2,7 +2,7 @@ clc; close all;
 s = tf('s');
 format long;
 
-signum = @(x) (x<=0).*-1 + (x>=0); % Definição da função signum
+signum = @(x) (x<0).*-1 + (x>=0); % Definição da função signum
 %c = 4;  % Constante para o tempo de acomodação dos filtros. É usado para
          % descartar os primeiros c * tau segundos do sinal a cada filtro
          % aplicado. Para c = 3 -> 95%, c=4 -> 98%, c=5 -> 99%
@@ -10,8 +10,8 @@ signum = @(x) (x<=0).*-1 + (x>=0); % Definição da função signum
          
 %% Construção do sinal e configurações
 SYSTEM_TYPE = '230V/50Hz'; % '120V/60Hz' ou '230V/50Hz'
-T_short = 10; % Tempo de amostragem do sinal, em minutos
-fs = 10000;
+T_short = 2; % Tempo de amostragem do sinal, em minutos
+fs = 2000;
 Ts = 1/fs;
 t = (0:Ts:T_short*60)';
 

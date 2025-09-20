@@ -5,32 +5,15 @@
 #include <math.h>
 
 
-Filter* Filter_new(const float num[], const float den[], const float x0[], const float y0[], 
+void Filter_init(Filter* f, const float num[], const float den[], const float x0[], const float y0[], 
                    const unsigned num_x_sz, const unsigned den_y_sz) 
 {
-    Filter *output = (Filter*) malloc(sizeof(Filter));
-    output->num = (float*) malloc(num_x_sz*sizeof(float));
-    output->den = (float*) malloc(den_y_sz*sizeof(float));
-    output->x = (float*) malloc(num_x_sz*sizeof(float));
-    output->y = (float*) malloc(den_y_sz*sizeof(float));
-
-    memcpy(output->num, num, num_x_sz*sizeof(float));
-    memcpy(output->den, den, den_y_sz*sizeof(float));
-    memcpy(output->x, x0, num_x_sz*sizeof(float));
-    memcpy(output->y, y0, den_y_sz*sizeof(float));
-    output->num_x_sz = num_x_sz;
-    output->den_y_sz = den_y_sz;
-
-    return output;
-}
-
-Filter* Filter_delete(Filter *f) {
-    free(f->num);
-    free(f->den);
-    free(f->x);
-    free(f->y);
-    free(f);
-    return NULL;
+    memcpy(f->num, num, num_x_sz*sizeof(float));
+    memcpy(f->den, den, den_y_sz*sizeof(float));
+    memcpy(f->x, x0, num_x_sz*sizeof(float));
+    memcpy(f->y, y0, den_y_sz*sizeof(float));
+    f->num_x_sz = num_x_sz;
+    f->den_y_sz = den_y_sz;
 }
 
 float Filter_input(Filter *f, float point) {
@@ -47,11 +30,13 @@ float Filter_input(Filter *f, float point) {
     }
     y[den_y_sz-1] = 0;                  // ... push back
 
-    // For the summation, I used the Kahan-Babushka-Neumaier Sum 
+    // For the summation, this uses the Kahan-Babushka-Neumaier Sum 
     // for reducing the sum error of large values with small values.
     // Also, I'm using fma (fused multiply-add), so it does just one
     // rounding instead of two when multiplying and adding.
     // https://en.wikipedia.org/wiki/Kahan_summation_algorithm#Further_enhancements
+    /*
+    // This was not used because the processing cost was too much for keeping Fs >= 2kHz.
     float sum = 0;
     float c = 0;
     for (int i = 0; i<num_x_sz; ++i) {  // Difference equation sum for x
@@ -76,8 +61,8 @@ float Filter_input(Filter *f, float point) {
         sum = sum_aux;
     }
     y[den_y_sz-1] = sum + c;
+    */
 
-    /*
     for (int i = 0; i<num_x_sz; ++i) {  // Difference equation sum for x
         y[den_y_sz-1] = fmaf(num[i]/den[0], x[num_x_sz-1 - i], y[den_y_sz-1]);
     }
@@ -85,7 +70,6 @@ float Filter_input(Filter *f, float point) {
     for (int i = 1; i<den_y_sz; ++i) {  // Difference equation sum for y
         y[den_y_sz-1] = fmaf(-den[i]/den[0], y[den_y_sz-1 - i], y[den_y_sz-1]);
     }
-    */
 
     return y[den_y_sz-1];   // return the new output point (y_n)
 }

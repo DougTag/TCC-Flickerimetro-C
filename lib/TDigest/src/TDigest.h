@@ -38,17 +38,15 @@ typedef struct Cluster {
 typedef struct TDigest {
     unsigned count; // Total number of data samples
 
-    Cluster clusters[2*TDIGEST_DELTA+1];    // Array of Clusters, or bins
+    Cluster clusters[2*TDIGEST_DELTA+4];    // Array of Clusters, or bins
     unsigned clusters_size;
 
-    float buffer[TDIGEST_BUFFER_SIZE];
+    float buffer[TDIGEST_BUFFER_SIZE+4];
     unsigned buffer_size;
 } TDigest;
 
 
-TDigest* TDigest_new();
-
-void TDigest_delete(TDigest *td);
+void TDigest_init(TDigest *td);
 
 void TDigest_clear(TDigest *td);
 
