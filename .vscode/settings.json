@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "timebase.h": "c",
-        "iec_61547_1.h": "c"
+        "iec_61547_1.h": "c",
+        "boardsetup.h": "c"
     }
 }

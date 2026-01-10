@@ -22,6 +22,7 @@
                 "d:/Computacao/TCC/TCC-Flickerimetro-C/lib/Timebase/src",
                 "C:/Users/dougl/.platformio/packages/framework-cmsis/CMSIS/Include",
                 "C:/Users/dougl/.platformio/packages/framework-cmsis-stm32g4/Include",
+                "d:/Computacao/TCC/TCC-Flickerimetro-C/lib/Histogram",
                 ""
             ],
             "browse": {
@@ -41,6 +42,7 @@
                     "d:/Computacao/TCC/TCC-Flickerimetro-C/lib/Timebase/src",
                     "C:/Users/dougl/.platformio/packages/framework-cmsis/CMSIS/Include",
                     "C:/Users/dougl/.platformio/packages/framework-cmsis-stm32g4/Include",
+                    "d:/Computacao/TCC/TCC-Flickerimetro-C/lib/Histogram",
                     ""
                 ]
             },
