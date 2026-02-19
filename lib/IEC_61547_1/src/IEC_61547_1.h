@@ -2,12 +2,14 @@
 #define IEC_61547_1_HEADER_GUARD
 
 #include "Filter.h"
-#include "TDigest.h"
+#include "LogHistogram1024.h"
 
 #define NETWORK_230V_50HZ
 
 #define IEC_SCALING_FACTOR 1.101603155420234e+06
-#define IEC_SAMPLING_FREQUENCY_HZ 2000
+#define IEC_SAMPLING_FREQUENCY_HZ 10000
+#define IEC_MIN_P_INST 1.9642e-4
+#define IEC_MAX_P_INST 19.26e3
 
 typedef struct IEC_61547_1 {
     float fs;
@@ -22,13 +24,13 @@ typedef struct IEC_61547_1 {
     Filter F_C_PBd;
     float scaling_factor;
     // BLOCO D
-    TDigest td;
+    LogHistogram1024* lh;
 } IEC_61547_1;
 
 void IEC_61547_init(IEC_61547_1* IEC);
 
-void IEC_61547_insert(IEC_61547_1* IEC, float data);
+void IEC_61547_insert(IEC_61547_1* IEC, double data);
 
-float IEC_61547_compute_P_st(IEC_61547_1* IEC);
+double IEC_61547_compute_P_st(IEC_61547_1* IEC);
 
 #endif

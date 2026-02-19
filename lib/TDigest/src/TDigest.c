@@ -46,18 +46,18 @@ void TDigest_copy(TDigest* dst, TDigest* src) {
 
 // That's k1(q) from [2]
 // Because of the optimizations of _TDigest_cluster_max_q_r, is not being used
-static float _TDigest_scale_function(float q) { 
+static double _TDigest_scale_function(double q) { 
     // k0(q)
     //return TDIGEST_DELTA/2.f * q;
     // k1(q)
-    q = fminf(q, TDIGEST_COS2_PI_DELTA);
-    return TDIGEST_DELTA / (2.f*M_PI) * asin(2.f*q - 1.f);
+    q = fmin(q, TDIGEST_COS2_PI_DELTA);
+    return TDIGEST_DELTA / (2.0*M_PI) * asin(2.0*q - 1.0);
     // k2(q)
 }
 
 // Inverse of k1(q) from [2]
 // Because of the optimizations of _TDigest_cluster_max_q_r, is not being used
-static float _TDigest_inv_scale_function(float k) {
+static double _TDigest_inv_scale_function(double k) {
     // k0^-1(q)
     //return 2.f/TDIGEST_DELTA * k;
     // k1^-1(q)
@@ -66,7 +66,7 @@ static float _TDigest_inv_scale_function(float k) {
 }
 
 
-static float _TDigest_cluster_max_q_r(float q_l) {
+static double _TDigest_cluster_max_q_r(double q_l) {
     // Since we need that k(q_r) - k(q_l) <= 1, then we need that,
     // at max, k(q_r) = k(q_l) + 1, thus
     // q_r_max = k^-1 (k(q_l) + 1)
@@ -80,15 +80,15 @@ static float _TDigest_cluster_max_q_r(float q_l) {
 
 
 static void _TDigest_compress(TDigest *td) {
-    float q_l = 0.0, q_r;
-    float q_r_max = _TDigest_cluster_max_q_r(0.0);
+    double q_l = 0.0, q_r;
+    double q_r_max = _TDigest_cluster_max_q_r(0.0);
     unsigned partial_count = td->clusters[0].count;
     const unsigned total_count = td->count;
 
     int i = 0;
     for (int j = 1; j < td->clusters_size; ++j) {
         partial_count += td->clusters[j].count;
-        q_r = partial_count / (float) total_count;
+        q_r = partial_count / (double) total_count;
 
         if (q_r <= q_r_max) { // Then merge
             td->clusters[i].count += td->clusters[j].count;
@@ -99,7 +99,7 @@ static void _TDigest_compress(TDigest *td) {
             ++i;
             td->clusters[i].mean = td->clusters[j].mean;
             td->clusters[i].count = td->clusters[j].count;
-            q_l = (partial_count - td->clusters[j].count) / (float) total_count;
+            q_l = (partial_count - td->clusters[j].count) / (double) total_count;
             q_r_max = _TDigest_cluster_max_q_r(q_l);
         }
     }
@@ -139,7 +139,7 @@ void TDigest_merge(TDigest *a, const TDigest *b) {
 
 
 static int _TDigest_data_comp(const void *a_ptr, const void *b_ptr) {
-    const float a = *(const float*) a_ptr, b = *(const float*) b_ptr;
+    const double a = *(const double*) a_ptr, b = *(const double*) b_ptr;
     return (a>b) - (a<b);
 }
 // O(size(td)+size(buffer))
@@ -149,7 +149,7 @@ static int _TDigest_data_comp(const void *a_ptr, const void *b_ptr) {
 void _TDigest_merge_buffer(TDigest *td) {
     if (td->buffer_size <= 0) return;
 
-    qsort((void*) td->buffer, td->buffer_size, sizeof(float), _TDigest_data_comp);
+    qsort((void*) td->buffer, td->buffer_size, sizeof(double), _TDigest_data_comp);
 
     Cluster result[TDIGEST_DELTA+1];
 
@@ -172,8 +172,8 @@ void _TDigest_merge_buffer(TDigest *td) {
         ++j;
     }
 
-    float q_r = 0.0;
-    float q_r_max = _TDigest_cluster_max_q_r(0.0);
+    double q_r = 0.0;
+    double q_r_max = _TDigest_cluster_max_q_r(0.0);
     while (i < td->buffer_size || j < td->clusters_size) {
         Cluster cur_cluster;
         if (i >= td->buffer_size) {
@@ -188,7 +188,7 @@ void _TDigest_merge_buffer(TDigest *td) {
         }
 
         r_count += cur_cluster.count;
-        q_r = r_count / (float) total_count;
+        q_r = r_count / (double) total_count;
 
         if (q_r <= q_r_max) {
             result[k].count += cur_cluster.count;
@@ -197,7 +197,7 @@ void _TDigest_merge_buffer(TDigest *td) {
         else {
             ++k;
             result[k] = cur_cluster;
-            const float q_l = (r_count - cur_cluster.count) / (float) total_count;
+            const double q_l = (r_count - cur_cluster.count) / (double) total_count;
             q_r_max = _TDigest_cluster_max_q_r(q_l);
         }
     }
@@ -209,7 +209,7 @@ void _TDigest_merge_buffer(TDigest *td) {
 }
 
 
-void TDigest_insert(TDigest *td, const float point) {
+void TDigest_insert(TDigest *td, const double point) {
     td->buffer[td->buffer_size++] = point;
 
     if(td->buffer_size < TDIGEST_BUFFER_SIZE) 
@@ -219,27 +219,27 @@ void TDigest_insert(TDigest *td, const float point) {
 }
 
 
-float TDigest_query(TDigest *td, float q) {
+double TDigest_query(TDigest *td, double q) {
     // See [1] for explanation. Nomenclature used (x, w and q) came from [2], p. 13-14.
     // I didn't do the little optimizations for clusters with 1 sample, or for the last
     // and first bins, proposed in [2] p. 14
     if (td->buffer_size > 0) _TDigest_merge_buffer(td);
 
     const unsigned total_count = td->count;
-    const float quantile_count = q * total_count;
-    float partial_count = td->clusters[0].count / 2.f;  // It may contain whole or half a sample (i.e. 12 or 12.5), so
-                                                        // I used float
+    const double quantile_count = q * total_count;
+    double partial_count = td->clusters[0].count / 2.0;  // It may contain whole or half a sample (i.e. 12 or 12.5), so
+                                                        // I used double
 
     if (quantile_count < partial_count) // If it fell on the left of the first cluster (the smallest samples)
         return td->clusters[0].mean;
 
     for (int i = 1; i < td->clusters_size; ++i) { // If it fell in the middle of two consecutive clusters
-        const float x0 = td->clusters[i-1].mean,  x1 = td->clusters[i].mean;
+        const double x0 = td->clusters[i-1].mean,  x1 = td->clusters[i].mean;
         const unsigned w0 = td->clusters[i-1].count, w1 = td->clusters[i].count;
-        const float interval_count = (w0 + w1)/2.0;
+        const double interval_count = (w0 + w1)/2.0;
 
         if (partial_count + interval_count > quantile_count) {
-            const float slope = (quantile_count - partial_count) / interval_count;
+            const double slope = (quantile_count - partial_count) / interval_count;
             return x0 + slope*(x1-x0);
         }
 

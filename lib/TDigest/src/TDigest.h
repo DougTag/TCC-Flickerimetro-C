@@ -27,11 +27,11 @@
 #endif
 
 #ifndef TDIGEST_BUFFER_SIZE // The bigger, the better
-#define TDIGEST_BUFFER_SIZE 2048 
+#define TDIGEST_BUFFER_SIZE 1024 
 #endif
 
 typedef struct Cluster {
-    float mean;
+    double mean;
     unsigned count; // Num. of samples inside it
 } Cluster;
 
@@ -41,7 +41,7 @@ typedef struct TDigest {
     Cluster clusters[2*TDIGEST_DELTA+4];    // Array of Clusters, or bins
     unsigned clusters_size;
 
-    float buffer[TDIGEST_BUFFER_SIZE+4];
+    double buffer[TDIGEST_BUFFER_SIZE+4];
     unsigned buffer_size;
 } TDigest;
 
@@ -56,8 +56,8 @@ void TDigest_copy(TDigest* dst, TDigest* src);
 
 void TDigest_merge(TDigest *a, const TDigest *b);
 
-void TDigest_insert(TDigest *td, const float point);
+void TDigest_insert(TDigest *td, const double point);
 
-float TDigest_query(TDigest *td, float q);
+double TDigest_query(TDigest *td, double q);
 
 #endif // TDIGEST_HEADER_GUARD

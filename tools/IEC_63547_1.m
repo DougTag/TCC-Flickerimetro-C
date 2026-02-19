@@ -11,7 +11,7 @@ signum = @(x) (x<0).*-1 + (x>=0); % Definição da função signum
 %% Construção do sinal e configurações
 SYSTEM_TYPE = '230V/50Hz'; % '120V/60Hz' ou '230V/50Hz'
 T_short = 2; % Tempo de amostragem do sinal, em minutos
-fs = 2000;
+fs = 10000;
 Ts = 1/fs;
 t = (0:Ts:T_short*60)';
 

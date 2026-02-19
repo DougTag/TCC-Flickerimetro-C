@@ -69,6 +69,7 @@ void ADC1_2_IRQHandler() {
         ++ADC1_queue_sz;
         if (ADC1_queue_sz > sizeof(ADC1_queue)/sizeof(uint32_t)) { // Se o buffer estourar...
             GPIOC->ODR ^= GPIO_ODR_OD6; // toogle PC6
+            SystemCoreClockUpdate();
             exit(-1);
         }
     }

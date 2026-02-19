@@ -14,7 +14,7 @@
                 "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/TIM/src",
                 "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/OPAMP/src",
                 "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/IEC_61547_1/src",
-                "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/TDigest/src",
+                "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/LogHistogram1024/src",
                 "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/Filter/src",
                 "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/BoardSetup/src",
                 "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/ADC/src",
@@ -22,7 +22,7 @@
                 "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/Timebase/src",
                 "C:/Users/dougl/.platformio/packages/framework-cmsis/CMSIS/Include",
                 "C:/Users/dougl/.platformio/packages/framework-cmsis-stm32g4/Include",
-                "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/LogHistogram2048/src",
+                "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/TDigest/src",
                 ""
             ],
             "browse": {
@@ -34,7 +34,7 @@
                     "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/TIM/src",
                     "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/OPAMP/src",
                     "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/IEC_61547_1/src",
-                    "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/TDigest/src",
+                    "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/LogHistogram1024/src",
                     "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/Filter/src",
                     "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/BoardSetup/src",
                     "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/ADC/src",
@@ -42,12 +42,12 @@
                     "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/Timebase/src",
                     "C:/Users/dougl/.platformio/packages/framework-cmsis/CMSIS/Include",
                     "C:/Users/dougl/.platformio/packages/framework-cmsis-stm32g4/Include",
-                    "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/LogHistogram2048/src",
+                    "d:/Drive/Computacao/TCC/TCC-Flickerimetro-C/lib/TDigest/src",
                     ""
                 ]
             },
             "defines": [
-                "PLATFORMIO=60118",
+                "PLATFORMIO=60119",
                 "STM32G4xx",
                 "STM32G431xx",
                 "F_CPU=170000000L",

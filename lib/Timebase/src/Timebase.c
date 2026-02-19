@@ -9,7 +9,7 @@ void Timebase_Init() {
 }
 
 void SysTick_Handler(void) {
-    ++global_SysTickCounter;
+    ++global_SysTickCounter; // 4e9 ms = 4e6 s = 46.3 days until it overflows, which is good enough for this project :)
 }
 
 uint32_t Timebase_GetTick() {
